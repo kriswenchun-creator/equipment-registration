@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Registration System</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Prevent text selection on buttons */
+        button {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef } = React;
+
+        // Lucide React Icons (inline SVG)
+        const Camera = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+        );
+
+        const Plus = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+
+        const Edit2 = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+        );
+
+        const Trash2 = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+        );
+
+        const X = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const Check = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        );
+
+        function EquipmentRegistration() {
+            const initialEquipmentList = [
+                "4-Door Upright Freezer — ตู้แช่แข็ง 4 ประตู",
+                "4-Door Upright Chiller — ตู้แช่เย็น 4 ประตู",
+                "2-Door Upright Chiller — ตู้แช่เย็น 2 ประตู",
+                "2-Door Upright Freezer — ตู้แช่แข็ง 2 ประตู",
+                "Counter Freezer (Right Side Open) — ตู้แช่แข็งใต้เคาน์เตอร์ (เปิดด้านขวา)",
+                "Counter Freezer (Left Side Open) — ตู้แช่แข็งใต้เคาน์เตอร์ (เปิดด้านซ้าย)",
+                "Counter Chiller (Left Side Open) — ตู้แช่เย็นใต้เคาน์เตอร์ (เปิดด้านซ้าย)",
+                "Counter Chiller (Right Side Open) — ตู้แช่เย็นใต้เคาน์เตอร์ (เปิดด้านขวา)",
+                "Display Counter Chiller (Left Side Open) — ตู้แช่โชว์ (เปิดด้านซ้าย)",
+                "Display Counter Chiller (Right Side Open) — ตู้แช่โชว์ (เปิดด้านขวา)",
+                "Work Table 1.5m-โต๊ะสแตนเล",
+                "Work Table 1.2m-โต๊ะสแตนเล",
+                "Work Table 1.1m-โต๊ะสแตนเล",
+                "Work Table 1.0m-โต๊ะสแตนเล",
+                "Work Table 0.9m-โต๊ะสแตนเล",
+                "Work Table 0.8m-โต๊ะสแตนเล",
+                "Work Table 0.7m-โต๊ะสแตนเล",
+                "Work Table 0.6m-โต๊ะสแตนเล",
+                "Double Sink+2 Faucets —อ่างล้าง2ช่อง+ก๊อกน้ำ2หัว",
+                "Single Sink+1 Faucet — อ่างล้าง1ช่อง+ก๊อกน้ำ1หัว",
+                "Exhaust Hood w/Fresh Air — เครื่องดูดควันพร้อมระบบอากาศเข้าใหม่",
+                "Exhaust Hood w/o Fresh Air — เครื่องดูดควันไม่มีระบบอากาศเข้าใหม่",
+                "Gas Deep Fryer—ตาทอดแก๊ส",
+                "Gas Salamander—เตาย่างแก๊ส",
+                "Gas Pasta Cooker—เตาต้มพาสต้าแก๊ส",
+                "Electric Deep Fryer—เตาทอดไฟฟ้า",
+                "Electric Salamander — เตาย่างไฟฟ้า",
+                "Electric Pasta Cooker — เตาต้มพาสต้าบไฟฟ้า",
+                "6 Bin for Pasta Cooker — ตะกร้าต้มพาสต้า 6 ช่อง",
+                "Equipment Stand for Pasta Cooker — ชั้นวางเตาต้มพาสต้า",
+                "Big Grease Trap — ถังดักไขมันขนาดใหญ่",
+                "Small Grease Trap — ถังดักไขมันขนาดเล็ก",
+                "Ice Bucket (Top Slide) — ถังน้ำแข็งเปิดด้านบน",
+                "Ice Bucket (Front Slide) — ถังน้ำแข็งเปิดด้านหน้า",
+                "Ice Cream Freezer — ตู้แช่ไอศกรีม",
+                "Equipment Stand for Ice Bucket & Ice Cream Freezer — ชั้นวางสำหรับถังน้ำแข็งและตู้แช่ไอศกรีม",
+                "Dish Washer (Up-Down) — เครื่องล้างจานแบบขึ้นลง",
+                "Dish Washer (TW-Imported) — เครื่องล้างจานนำเข้าจากไต้หวัน",
+                "Ventilation Hood — เครื่องดูดอากาศ",
+                "Equipment Stand for Locker — ชั้นวางสำหรับตู้เก็บของ",
+                "Locker — ตู้เก็บของ",
+                "Knife Stand — ที่วางมีด",
+                "Trolley for 7 Baskets — ชั้นวาง 7 ตะกร้า",
+                "Trolley for 3 Baskets — ชั้นวาง 3 ตะกร้า",
+                "Trolley for Service Tray — ชั้นวางถาด side dish",
+                "Induction Cooker — เตาแม่เหล็กไฟฟ้า",
+                "Steamed Cooker — หม้อนึ่ง",
+                "Wall Shelf 1.5m-ชั้นลอยติดผนัง",
+                "Wall Shelf 1.2m-ชั้นลอยติดผนัง",
+                "Wall Shelf 1.0m-ชั้นลอยติดผนัง",
+                "Wall Shelf 0.9m-ชั้นลอยติดผนัง",
+                "Wall Shelf 0.8m-ชั้นลอยติดผนัง",
+                "Wall Shelf 0.7m ชั้นลอยติดผนัง",
+                "Wall Shelf for Grilled Pan — ชั้นลอยติดผนังสำหรับกระทะย่าง",
+                "Over High Shelf for Bottles — ชั้นวางสำหรับขวด",
+                "Sushi Tray Shelf — ชั้นวางถาดซูชิ",
+                "Cup Dryer (TW-Imported) — เครื่องอบแก้ว (นำเข้าจากไต้หวัน)",
+                "Pepsi Fountain — เครื่องจ่ายน้ำอัดลม Pepsi",
+                "Pepsi Fridge — ตู้แช่เย็น Pepsi",
+                "Double Over High Shelf 1.5m-ชั้นวางสูงสองชั้นบนโต๊ะ",
+                "Double Over High Shelf 1.2m —ชั้นวางสูงสองชั้นบนโต๊ะ"
+            ];
+
+            const [formData, setFormData] = useState({
+                store: '',
+                date: new Date().toISOString().split('T')[0],
+                equipment: '',
+                quantity: '',
+                photo: null,
+                usageNotes: ''
+            });
+
+            const [equipmentList, setEquipmentList] = useState(initialEquipmentList);
+            const [showManageEquipment, setShowManageEquipment] = useState(false);
+            const [newEquipment, setNewEquipment] = useState('');
+            const [editingIndex, setEditingIndex] = useState(null);
+            const [editingValue, setEditingValue] = useState('');
+            const [photoPreview, setPhotoPreview] = useState(null);
+            const [photoError, setPhotoError] = useState('');
+            const [submittedData, setSubmittedData] = useState([]);
+            const fileInputRef = useRef(null);
+
+            const handleInputChange = (field, value) => {
+                setFormData(prev => ({ ...prev, [field]: value }));
+            };
+
+            const handlePhotoUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const fileSizeKB = file.size / 1024;
+                    
+                    if (fileSizeKB > 200) {
+                        setPhotoError(`File size: ${fileSizeKB.toFixed(1)}KB (Max: 200KB)`);
+                        setPhotoPreview(null);
+                        setFormData(prev => ({ ...prev, photo: null }));
+                        return;
+                    }
+
+                    setPhotoError('');
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setPhotoPreview(reader.result);
+                        setFormData(prev => ({ ...prev, photo: file }));
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleAddEquipment = () => {
+                if (newEquipment.trim()) {
+                    setEquipmentList(prev => [...prev, newEquipment.trim()]);
+                    setNewEquipment('');
+                }
+            };
+
+            const startEditEquipment = (index) => {
+                setEditingIndex(index);
+                setEditingValue(equipmentList[index]);
+            };
+
+            const saveEditEquipment = () => {
+                if (editingValue.trim()) {
+                    const newList = [...equipmentList];
+                    newList[editingIndex] = editingValue.trim();
+                    setEquipmentList(newList);
+                    setEditingIndex(null);
+                    setEditingValue('');
+                }
+            };
+
+            const deleteEquipment = (index) => {
+                setEquipmentList(prev => prev.filter((_, i) => i !== index));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                
+                if (!formData.store || !formData.equipment || !formData.quantity) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+
+                const submissionData = {
+                    ...formData,
+                    id: Date.now(),
+                    submittedAt: new Date().toLocaleString()
+                };
+
+                setSubmittedData(prev => [...prev, submissionData]);
+
+                setFormData({
+                    store: '',
+                    date: new Date().toISOString().split('T')[0],
+                    equipment: '',
+                    quantity: '',
+                    photo: null,
+                    usageNotes: ''
+                });
+                setPhotoPreview(null);
+                setPhotoError('');
+                
+                alert('Registration submitted successfully!');
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 pb-20">
+                    <div className="max-w-md mx-auto">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                            <h1 className="text-2xl font-bold text-slate-800 text-center mb-2">
+                                Equipment Registration
+                            </h1>
+                            <p className="text-slate-500 text-center text-sm">
+                                Kitchen Equipment Tracking System
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-6 space-y-5">
+                            
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    Store <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.store}
+                                    onChange={(e) => handleInputChange('store', e.target.value)}
+                                    placeholder="Enter store name"
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    Date <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    value={formData.date}
+                                    onChange={(e) => handleInputChange('date', e.target.value)}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-semibold text-slate-700">
+                                        Equipment Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowManageEquipment(!showManageEquipment)}
+                                        className="text-blue-600 text-xs font-medium flex items-center gap-1 hover:text-blue-700"
+                                    >
+                                        <Edit2 size={14} />
+                                        Manage List
+                                    </button>
+                                </div>
+                                <select
+                                    value={formData.equipment}
+                                    onChange={(e) => handleInputChange('equipment', e.target.value)}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors appearance-none bg-white"
+                                    required
+                                >
+                                    <option value="">Select equipment</option>
+                                    {equipmentList.map((item, index) => (
+                                        <option key={index} value={item}>{item}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {showManageEquipment && (
+                                <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h3 className="font-semibold text-slate-700 text-sm">Manage Equipment List</h3>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowManageEquipment(false)}
+                                            className="text-slate-400 hover:text-slate-600"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex gap-2 mb-4">
+                                        <input
+                                            type="text"
+                                            value={newEquipment}
+                                            onChange={(e) => setNewEquipment(e.target.value)}
+                                            placeholder="Add new equipment"
+                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddEquipment}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Plus size={18} />
+                                        </button>
+                                    </div>
+
+                                    <div className="max-h-64 overflow-y-auto space-y-2">
+                                        {equipmentList.map((item, index) => (
+                                            <div key={index} className="bg-white rounded-lg p-3 flex items-center gap-2">
+                                                {editingIndex === index ? (
+                                                    <>
+                                                        <input
+                                                            type="text"
+                                                            value={editingValue}
+                                                            onChange={(e) => setEditingValue(e.target.value)}
+                                                            className="flex-1 px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none"
+                                                            autoFocus
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={saveEditEquipment}
+                                                            className="text-green-600 hover:text-green-700"
+                                                        >
+                                                            <Check size={18} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingIndex(null)}
+                                                            className="text-slate-400 hover:text-slate-600"
+                                                        >
+                                                            <X size={18} />
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="flex-1 text-sm text-slate-700">{item}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => startEditEquipment(index)}
+                                                            className="text-blue-600 hover:text-blue-700"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => deleteEquipment(index)}
+                                                            className="text-red-600 hover:text-red-700"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    Quantity <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.quantity}
+                                    onChange={(e) => handleInputChange('quantity', e.target.value)}
+                                    placeholder="Enter quantity"
+                                    min="1"
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    Photo Upload <span className="text-slate-400 text-xs">(Max 200KB)</span>
+                                </label>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handlePhotoUpload}
+                                    accept="image/*"
+                                    capture="environment"
+                                    className="hidden"
+                                />
+                                
+                                {photoPreview ? (
+                                    <div className="relative">
+                                        <img
+                                            src={photoPreview}
+                                            alt="Preview"
+                                            className="w-full h-48 object-cover rounded-xl border-2 border-slate-200"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPhotoPreview(null);
+                                                setFormData(prev => ({ ...prev, photo: null }));
+                                                fileInputRef.current.value = '';
+                                            }}
+                                            className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current.click()}
+                                        className="w-full h-32 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-blue-500 hover:bg-blue-50 transition-colors active:bg-blue-100"
+                                    >
+                                        <Camera size={32} className="text-slate-400" />
+                                        <span className="text-sm text-slate-500">Tap to take/upload photo</span>
+                                    </button>
+                                )}
+                                
+                                {photoError && (
+                                    <p className="text-red-500 text-xs mt-2">{photoError}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    Usage Notes <span className="text-slate-400 text-xs">(Max 200 characters)</span>
+                                </label>
+                                <textarea
+                                    value={formData.usageNotes}
+                                    onChange={(e) => {
+                                        if (e.target.value.length <= 200) {
+                                            handleInputChange('usageNotes', e.target.value);
+                                        }
+                                    }}
+                                    placeholder="Enter usage conditions or notes"
+                                    rows="4"
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors resize-none"
+                                />
+                                <div className="text-right text-xs text-slate-400 mt-1">
+                                    {formData.usageNotes.length}/200
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl active:scale-98"
+                            >
+                                Submit Registration
+                            </button>
+                        </form>
+
+                        {submittedData.length > 0 && (
+                            <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
+                                <h2 className="text-lg font-bold text-slate-800 mb-4">Recent Submissions</h2>
+                                <div className="space-y-3">
+                                    {submittedData.slice(-3).reverse().map((data) => (
+                                        <div key={data.id} className="bg-slate-50 rounded-lg p-4 text-sm">
+                                            <div className="font-semibold text-slate-700">{data.store}</div>
+                                            <div className="text-slate-600">{data.equipment}</div>
+                                            <div className="text-slate-500 text-xs mt-1">
+                                                Qty: {data.quantity} • {data.submittedAt}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EquipmentRegistration />);
+    </script>
+</body>
+</html>
